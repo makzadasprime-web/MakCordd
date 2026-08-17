@@ -295,6 +295,15 @@ input{ font-family: var(--font-body); }
 .incoming-sub{ font-size:12.5px; color: var(--text-muted); }
 .incoming-actions{ display:flex; gap:16px; margin-top:20px; }
 
+/* ---------- configurações de áudio ---------- */
+.settings-card{
+  width:100%; max-width:360px;
+  background: var(--surface); border:1px solid var(--border); border-radius: var(--radius-lg);
+  padding: 30px 32px; box-shadow: var(--shadow-soft);
+}
+.settings-card h2{ font-size:17px; margin-bottom:4px; }
+.btn-icon.is-active{ background: var(--accent); color: var(--accent-ink); }
+
 .pulse-ring{ position:relative; }
 .pulse-ring::before{
   content:''; position:absolute; inset:-8px; border-radius:50%;
