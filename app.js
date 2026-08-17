@@ -38,6 +38,17 @@ let room = {
   remoteStreams: {}                // peerId -> MediaStream
 };
 
+// dispositivos de áudio (microfone / saída) e compartilhamento de tela
+let selectedMicId = localStorage.getItem('makcord.mic') || '';
+let selectedSpeakerId = localStorage.getItem('makcord.speaker') || '';
+const SINK_SUPPORTED = typeof HTMLMediaElement !== 'undefined' && !!HTMLMediaElement.prototype.setSinkId;
+const SCREEN_SHARE_CONSTRAINTS = {
+  video: { width: { ideal: 1280, max: 1280 }, height: { ideal: 720, max: 720 }, frameRate: { ideal: 30, max: 30 } },
+  audio: false
+};
+let isScreenSharing1to1 = false;
+let isScreenSharingRoom = false;
+
 /* ---------------------------------------------------------------------------
    Utilidades
    ------------------------------------------------------------------------- */
@@ -61,6 +72,15 @@ function friendNameForPeerId(peerId){
 function el(id){ return document.getElementById(id); }
 function fmtTime(ts){
   return new Date(ts).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+}
+
+function micConstraint(){
+  return selectedMicId ? { deviceId: { exact: selectedMicId } } : true;
+}
+function applySinkId(mediaEl){
+  if (SINK_SUPPORTED && selectedSpeakerId){
+    mediaEl.setSinkId(selectedSpeakerId).catch(() => {});
+  }
 }
 
 function toast(message, type){
@@ -154,6 +174,14 @@ function bindUI(){
 
   el('btn-toggle-mic').addEventListener('click', () => toggleTrack(room.localStream, 'audio', 'btn-toggle-mic'));
   el('btn-toggle-cam').addEventListener('click', () => toggleTrack(room.localStream, 'video', 'btn-toggle-cam'));
+
+  el('call-btn-screen').addEventListener('click', () => toggleScreenShare('1to1'));
+  el('btn-toggle-screen').addEventListener('click', () => toggleScreenShare('room'));
+
+  el('btn-settings').addEventListener('click', openSettings);
+  el('btn-close-settings').addEventListener('click', () => el('settings-overlay').classList.add('hidden'));
+  el('mic-select').addEventListener('change', e => switchMicrophone(e.target.value));
+  el('speaker-select').addEventListener('change', e => switchSpeaker(e.target.value));
 }
 
 function startApp(name){
@@ -432,9 +460,10 @@ function startCall(video){
   if (currentCall){ toast('Você já está em uma chamada.', 'error'); return; }
 
   const peerId = peerIdFor(activeChatFriend);
-  navigator.mediaDevices.getUserMedia({ audio: true, video })
+  navigator.mediaDevices.getUserMedia({ audio: micConstraint(), video })
     .then(stream => {
       localStream1to1 = stream;
+      isScreenSharing1to1 = false;
       showCallOverlay(activeChatFriend);
       el('call-status-text').textContent = 'chamando…';
       const call = peer.call(peerId, stream, { metadata: { name: myUsername } });
@@ -446,7 +475,9 @@ function startCall(video){
 
 function wireMediaCall(call){
   call.on('stream', remoteStream => {
-    el('call-remote-video').srcObject = remoteStream;
+    const v = el('call-remote-video');
+    v.srcObject = remoteStream;
+    applySinkId(v);
     el('call-remote-fallback').classList.add('hidden');
   });
   call.on('close', endCall);
@@ -475,9 +506,10 @@ function handleIncomingCall(call){
 function acceptIncomingCall(){
   if (!incomingCallPending) return;
   const { call, name } = incomingCallPending;
-  navigator.mediaDevices.getUserMedia({ audio: true, video: true })
+  navigator.mediaDevices.getUserMedia({ audio: micConstraint(), video: true })
     .then(stream => {
       localStream1to1 = stream;
+      isScreenSharing1to1 = false;
       currentCall = call;
       call.answer(stream);
       wireMediaCall(call);
@@ -513,6 +545,8 @@ function endCall(){
   if (currentCall){ try { currentCall.close(); } catch(e){} }
   if (localStream1to1){ localStream1to1.getTracks().forEach(t => t.stop()); localStream1to1 = null; }
   currentCall = null;
+  isScreenSharing1to1 = false;
+  el('call-btn-screen').classList.remove('is-active');
   el('call-overlay').classList.add('hidden');
   el('call-remote-video').srcObject = null;
   el('call-local-video').srcObject = null;
@@ -537,13 +571,14 @@ function toggleTrack(stream, kind, buttonId){
    ============================================================================= */
 function createRoom(){
   if (room.active){ toast('Você já está em uma sala.', 'error'); return; }
-  navigator.mediaDevices.getUserMedia({ audio: true, video: true })
+  navigator.mediaDevices.getUserMedia({ audio: micConstraint(), video: true })
     .then(stream => {
       room = {
         active: true, isHost: true, hostPeerId: myPeerId,
         members: [{ id: myPeerId, name: myUsername }],
         localStream: stream, mediaCalls: {}, remoteStreams: {}
       };
+      isScreenSharingRoom = false;
       openRoomPanel();
     })
     .catch(() => toast('Não foi possível acessar câmera/microfone.', 'error'));
@@ -554,13 +589,14 @@ function joinRoom(hostName){
   const hostPeerId = peerIdFor(hostName);
   if (hostPeerId === myPeerId){ toast('Esse nome é o seu.', 'error'); return; }
 
-  navigator.mediaDevices.getUserMedia({ audio: true, video: true })
+  navigator.mediaDevices.getUserMedia({ audio: micConstraint(), video: true })
     .then(stream => {
       room = {
         active: true, isHost: false, hostPeerId,
         members: [{ id: myPeerId, name: myUsername }],
         localStream: stream, mediaCalls: {}, remoteStreams: {}
       };
+      isScreenSharingRoom = false;
       openRoomPanel();
 
       const conn = getOrCreateDataConn(hostPeerId, hostName);
@@ -653,6 +689,8 @@ function leaveRoom(silent){
   if (room.localStream) room.localStream.getTracks().forEach(t => t.stop());
 
   room = { active: false, isHost: false, hostPeerId: null, members: [], localStream: null, mediaCalls: {}, remoteStreams: {} };
+  isScreenSharingRoom = false;
+  el('btn-toggle-screen').classList.remove('is-active');
   closeRoomPanel();
   if (!silent) toast('Você saiu da sala.');
 }
@@ -686,6 +724,7 @@ function renderRoomGrid(){
       video.autoplay = true; video.playsInline = true;
       if (m.id === myPeerId) video.muted = true;
       video.srcObject = stream;
+      applySinkId(video);
       tile.appendChild(video);
     } else {
       const avatar = document.createElement('div');
@@ -701,4 +740,156 @@ function renderRoomGrid(){
 
     grid.appendChild(tile);
   });
+}
+
+/* =============================================================================
+   MICROFONE E SAÍDA DE ÁUDIO
+   ============================================================================= */
+function openSettings(){
+  el('settings-overlay').classList.remove('hidden');
+  loadDevices();
+}
+
+function loadDevices(){
+  // rótulos de dispositivo só aparecem depois de uma permissão concedida;
+  // se ainda não temos nenhum stream ativo, pedimos um rapidinho só para isso.
+  const needsPermission = !localStream1to1 && !room.localStream;
+  const ensurePermission = needsPermission
+    ? navigator.mediaDevices.getUserMedia({ audio: true }).then(s => s.getTracks().forEach(t => t.stop())).catch(() => {})
+    : Promise.resolve();
+
+  ensurePermission.then(() => navigator.mediaDevices.enumerateDevices()).then(devices => {
+    fillDeviceSelect('mic-select', devices.filter(d => d.kind === 'audioinput'), selectedMicId, 'Microfone');
+
+    if (!SINK_SUPPORTED){
+      el('speaker-select').classList.add('hidden');
+      el('speaker-unsupported').classList.remove('hidden');
+    } else {
+      el('speaker-select').classList.remove('hidden');
+      el('speaker-unsupported').classList.add('hidden');
+      fillDeviceSelect('speaker-select', devices.filter(d => d.kind === 'audiooutput'), selectedSpeakerId, 'Saída');
+    }
+  }).catch(() => toast('Não foi possível listar os dispositivos de áudio.', 'error'));
+}
+
+function fillDeviceSelect(selectId, devices, selectedId, fallbackLabel){
+  const select = el(selectId);
+  select.innerHTML = '';
+  const defaultOpt = document.createElement('option');
+  defaultOpt.value = '';
+  defaultOpt.textContent = 'Padrão do sistema';
+  select.appendChild(defaultOpt);
+
+  devices.forEach((d, i) => {
+    const opt = document.createElement('option');
+    opt.value = d.deviceId;
+    opt.textContent = d.label || (fallbackLabel + ' ' + (i + 1));
+    select.appendChild(opt);
+  });
+  select.value = devices.some(d => d.deviceId === selectedId) ? selectedId : '';
+}
+
+function switchMicrophone(deviceId){
+  selectedMicId = deviceId;
+  localStorage.setItem('makcord.mic', deviceId);
+
+  navigator.mediaDevices.getUserMedia({ audio: micConstraint() })
+    .then(stream => {
+      const newTrack = stream.getAudioTracks()[0];
+      if (localStream1to1 && currentCall) replaceOutgoingAudioTrack([currentCall], localStream1to1, newTrack);
+      else if (room.active) replaceOutgoingAudioTrack(Object.values(room.mediaCalls), room.localStream, newTrack);
+      else newTrack.stop(); // sem chamada ativa: só guardamos a preferência
+      toast('Microfone atualizado.', 'ok');
+    })
+    .catch(() => toast('Não foi possível trocar o microfone.', 'error'));
+}
+
+function replaceOutgoingAudioTrack(calls, stream, newTrack){
+  const oldTrack = stream.getAudioTracks()[0];
+  calls.forEach(call => {
+    const pc = call.peerConnection;
+    if (!pc) return;
+    const sender = pc.getSenders().find(s => s.track && s.track.kind === 'audio');
+    if (sender) sender.replaceTrack(newTrack);
+  });
+  if (oldTrack){ stream.removeTrack(oldTrack); oldTrack.stop(); }
+  stream.addTrack(newTrack);
+}
+
+function switchSpeaker(deviceId){
+  selectedSpeakerId = deviceId;
+  localStorage.setItem('makcord.speaker', deviceId);
+  if (!SINK_SUPPORTED) return;
+
+  applySinkId(el('call-remote-video'));
+  document.querySelectorAll('#room-grid video').forEach(v => applySinkId(v));
+  toast('Saída de áudio atualizada.', 'ok');
+}
+
+/* =============================================================================
+   COMPARTILHAMENTO DE TELA (720p, 30fps)
+   ============================================================================= */
+function toggleScreenShare(context){
+  const sharing = context === '1to1' ? isScreenSharing1to1 : isScreenSharingRoom;
+  if (sharing) stopScreenShare(context);
+  else startScreenShare(context);
+}
+
+function startScreenShare(context){
+  if (!navigator.mediaDevices.getDisplayMedia){
+    toast('Seu navegador não suporta compartilhamento de tela.', 'error');
+    return;
+  }
+  navigator.mediaDevices.getDisplayMedia(SCREEN_SHARE_CONSTRAINTS)
+    .then(screenStream => {
+      const screenTrack = screenStream.getVideoTracks()[0];
+      screenTrack.onended = () => stopScreenShare(context); // botão "Parar de compartilhar" do navegador
+
+      if (context === '1to1'){
+        if (!localStream1to1) { screenTrack.stop(); return; }
+        replaceOutgoingVideoTrack(currentCall ? [currentCall] : [], localStream1to1, screenTrack);
+        isScreenSharing1to1 = true;
+        el('call-btn-screen').classList.add('is-active');
+      } else {
+        if (!room.localStream) { screenTrack.stop(); return; }
+        replaceOutgoingVideoTrack(Object.values(room.mediaCalls), room.localStream, screenTrack);
+        isScreenSharingRoom = true;
+        el('btn-toggle-screen').classList.add('is-active');
+        renderRoomGrid();
+      }
+    })
+    .catch(() => { /* usuário cancelou o seletor de tela — nada a fazer */ });
+}
+
+function stopScreenShare(context){
+  navigator.mediaDevices.getUserMedia({ video: true })
+    .then(camStream => {
+      const camTrack = camStream.getVideoTracks()[0];
+      if (context === '1to1' && localStream1to1){
+        replaceOutgoingVideoTrack(currentCall ? [currentCall] : [], localStream1to1, camTrack);
+        isScreenSharing1to1 = false;
+        el('call-btn-screen').classList.remove('is-active');
+      } else if (context === 'room' && room.localStream){
+        replaceOutgoingVideoTrack(Object.values(room.mediaCalls), room.localStream, camTrack);
+        isScreenSharingRoom = false;
+        el('btn-toggle-screen').classList.remove('is-active');
+        renderRoomGrid();
+      } else {
+        camTrack.stop();
+      }
+    })
+    .catch(() => toast('Não foi possível voltar para a câmera.', 'error'));
+}
+
+function replaceOutgoingVideoTrack(calls, stream, newTrack){
+  const oldTrack = stream.getVideoTracks()[0];
+  calls.forEach(call => {
+    const pc = call.peerConnection;
+    if (!pc) return;
+    const sender = pc.getSenders().find(s => s.track && s.track.kind === 'video');
+    if (sender) sender.replaceTrack(newTrack);
+  });
+  if (oldTrack){ stream.removeTrack(oldTrack); oldTrack.stop(); }
+  stream.addTrack(newTrack);
+  if (stream === localStream1to1) el('call-local-video').srcObject = stream;
 }

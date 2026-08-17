@@ -55,6 +55,13 @@ python3 -m http.server 8080
    anfitriã) e avisa o próprio nome de usuário para os amigos. Cada amigo
    digita esse nome em **"Entrar com nome do anfitrião"** para entrar —
    até 6 pessoas por sala.
+5. Em qualquer chamada (1:1 ou em grupo), o botão 🖥 compartilha a tela
+   em 720p/30fps no lugar da câmera — clicar de novo, fechar o seletor
+   de tela ou usar o botão "Parar de compartilhar" do navegador volta
+   para a câmera automaticamente.
+6. O ícone ⚙ ao lado do seu nome abre as configurações de **microfone**
+   e **saída de áudio**: dá para trocar de dispositivo mesmo com uma
+   chamada em andamento, sem precisar reconectar.
 
 ## Limitações importantes (por ser 100% estático)
 
@@ -76,6 +83,13 @@ python3 -m http.server 8080
 - **Chamada em grupo é malha (mesh).** Cada participante liga direto para
   os outros, então o consumo de upload cresce com o número de pessoas —
   6 é um limite confortável para a maioria das conexões residenciais.
+  Compartilhar tela em grupo multiplica isso por participante, então em
+  redes mais fracas pode valer revezar quem compartilha.
+- **Escolher saída de áudio (alto-falante) só funciona em navegadores
+  baseados em Chromium** (Chrome, Edge, Opera) — é uma limitação da API
+  `setSinkId` do navegador, não do Makcord. Em outros navegadores, o app
+  avisa e usa a saída padrão do sistema. Trocar de microfone funciona em
+  qualquer navegador com WebRTC.
 
 ## Estrutura
 
