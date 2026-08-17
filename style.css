@@ -1,0 +1,332 @@
+/* ==========================================================================
+   MAKCORD — design tokens
+   Conceito: "sinal entre amigos" — presença e chamada representadas como
+   pulsos/ripples, como um sinal de rádio entre duas pessoas.
+   ========================================================================== */
+:root{
+  --bg:        #17131E;
+  --surface:   #1E1929;
+  --surface-2: #251F33;
+  --border:    #322A44;
+  --text:      #F3EEFA;
+  --text-muted:#948BAC;
+  --text-faint:#6B6284;
+
+  --accent:      #FF6F8E; /* ação primária */
+  --accent-ink:  #2A0E16;
+  --signal:      #5FD9C4; /* presença / online */
+  --warn:        #F2A65A; /* chamada / atenção */
+  --danger:      #FF5C6C;
+
+  --radius-sm: 8px;
+  --radius:    14px;
+  --radius-lg: 20px;
+
+  --font-display: 'Space Grotesk', 'Segoe UI', sans-serif;
+  --font-body: 'Inter', 'Segoe UI', sans-serif;
+
+  --shadow-soft: 0 10px 30px rgba(0,0,0,0.35);
+}
+
+*{ box-sizing: border-box; }
+html,body{ height:100%; }
+body{
+  margin:0;
+  background: var(--bg);
+  background-image:
+    radial-gradient(circle at 15% 0%, rgba(255,111,142,0.07), transparent 45%),
+    radial-gradient(circle at 85% 100%, rgba(95,217,196,0.06), transparent 45%);
+  color: var(--text);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+h1,h2,h3, .brand-name{ font-family: var(--font-display); margin:0; }
+p{ margin:0; }
+ul{ list-style:none; margin:0; padding:0; }
+button{ font-family: var(--font-body); cursor:pointer; }
+input{ font-family: var(--font-body); }
+.hidden{ display:none !important; }
+
+/* ---------- botões ---------- */
+.btn{
+  border:none;
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  transition: transform .12s ease, opacity .12s ease, background .12s ease;
+}
+.btn:active{ transform: scale(0.97); }
+.btn-block{ width:100%; }
+.btn-primary{ background: var(--accent); color: var(--accent-ink); }
+.btn-primary:hover{ opacity:.92; }
+.btn-secondary{ background: var(--surface-2); color: var(--text); border:1px solid var(--border); }
+.btn-secondary:hover{ border-color: var(--accent); }
+.btn-ghost{ background: transparent; color: var(--text-muted); }
+.btn-ghost:hover{ color: var(--text); background: var(--surface-2); }
+.btn-danger{ background: rgba(255,92,108,0.14); color: var(--danger); }
+.btn-danger:hover{ background: rgba(255,92,108,0.24); }
+.btn-accent{ background: var(--signal); color: #08211C; }
+.btn-icon{ width:40px; height:40px; padding:0; display:inline-flex; align-items:center; justify-content:center; border-radius:10px; font-size:16px; }
+.btn-round{ width:52px; height:52px; border-radius:50%; font-size:19px; }
+
+/* ---------- campos ---------- */
+.field-label{ display:block; font-size:12px; color: var(--text-muted); margin-bottom:6px; font-weight:600; letter-spacing:.02em; }
+.field-input{
+  width:100%;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  font-size: 14px;
+  outline:none;
+  transition: border-color .12s ease;
+}
+.field-input::placeholder{ color: var(--text-faint); }
+.field-input:focus{ border-color: var(--accent); }
+.field-input--sm{ padding:9px 12px; font-size:13px; }
+.field-hint{ font-size:12px; color: var(--text-faint); min-height:16px; margin-top:6px; }
+.field-hint.error{ color: var(--danger); }
+.field-hint.ok{ color: var(--signal); }
+
+/* ==========================================================================
+   TELA DE LOGIN
+   ========================================================================== */
+.screen{ min-height:100vh; }
+#screen-login{ display:flex; align-items:center; justify-content:center; padding:24px; }
+.login-card{
+  width:100%; max-width: 380px;
+  background: var(--surface);
+  border:1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 36px 32px;
+  box-shadow: var(--shadow-soft);
+}
+.brand{ display:flex; align-items:center; gap:10px; margin-bottom: 22px; }
+.brand-mark{
+  width:14px; height:14px; border-radius:50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 4px rgba(255,111,142,0.18);
+}
+.brand-name{ font-size:22px; font-weight:700; letter-spacing:-0.01em; }
+.login-sub{ color: var(--text-muted); font-size:14px; line-height:1.5; margin-bottom:24px; }
+#login-form .field-input{ margin-bottom:4px; }
+#login-form .btn{ margin-top:14px; }
+.login-footnote{ margin-top:18px; font-size:12px; color: var(--text-faint); text-align:center; line-height:1.5; }
+
+/* ==========================================================================
+   APP SHELL
+   ========================================================================== */
+.app-shell{ display:flex; height:100vh; overflow:hidden; }
+
+/* ---------- sidebar ---------- */
+.sidebar{
+  width: 280px; flex-shrink:0;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display:flex; flex-direction:column;
+  padding: 20px 16px;
+  overflow-y:auto;
+}
+.me-row{ display:flex; align-items:center; gap:12px; margin-bottom:18px; }
+.me-info{ min-width:0; }
+.me-name{ font-weight:600; font-size:14px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.me-status{ display:flex; align-items:center; gap:6px; font-size:12px; color: var(--text-muted); margin-top:2px; }
+
+.avatar{
+  width:40px; height:40px; border-radius:50%;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  display:flex; align-items:center; justify-content:center;
+  font-family: var(--font-display); font-weight:600; font-size:15px;
+  color: var(--text); flex-shrink:0; position:relative;
+  text-transform:uppercase;
+}
+.avatar-me{ background: linear-gradient(135deg, rgba(255,111,142,0.25), rgba(255,111,142,0.05)); border-color: rgba(255,111,142,0.4); }
+.avatar-room{ background: linear-gradient(135deg, rgba(242,166,90,0.25), rgba(242,166,90,0.05)); border-color: rgba(242,166,90,0.4); }
+.avatar-xl{ width:76px; height:76px; font-size:26px; }
+
+.status-dot{
+  width:8px; height:8px; border-radius:50%;
+  background: var(--text-faint);
+  display:inline-block; flex-shrink:0;
+}
+.status-dot.online{ background: var(--signal); box-shadow: 0 0 0 3px rgba(95,217,196,0.18); }
+.status-dot.offline{ background: var(--text-faint); }
+
+.add-friend{ display:flex; gap:8px; margin-bottom:2px; }
+.add-friend .field-input{ flex:1; }
+
+.sidebar-section-label{
+  font-size:11px; text-transform:uppercase; letter-spacing:.08em;
+  color: var(--text-faint); font-weight:700;
+  margin: 18px 4px 8px;
+}
+.sidebar-divider{ height:1px; background: var(--border); margin: 14px 0; }
+
+.friends-list{ display:flex; flex-direction:column; gap:2px; }
+.friend-item{
+  display:flex; align-items:center; gap:10px;
+  padding: 8px; border-radius: var(--radius-sm);
+  cursor:pointer; transition: background .12s ease;
+}
+.friend-item:hover{ background: var(--surface-2); }
+.friend-item.active{ background: var(--surface-2); box-shadow: inset 2px 0 0 var(--accent); }
+.friend-item .avatar{ width:34px; height:34px; font-size:13px; }
+.friend-name{ font-size:13.5px; font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1; }
+.friend-item .status-dot{ position:absolute; margin-left:24px; margin-top:22px; border:2px solid var(--surface); }
+.empty-note{ font-size:12.5px; color: var(--text-faint); line-height:1.5; padding: 6px 4px; }
+
+/* ==========================================================================
+   PAINEL PRINCIPAL
+   ========================================================================== */
+.main-panel{ flex:1; display:flex; flex-direction:column; min-width:0; background: var(--bg); }
+
+.panel-empty{
+  flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  text-align:center; color: var(--text-muted); padding: 24px;
+}
+.panel-empty h1{ font-size:18px; color: var(--text); margin: 14px 0 6px; }
+.panel-empty p{ font-size:13.5px; max-width:280px; line-height:1.5; }
+
+.pulse-mark{
+  width:16px; height:16px; border-radius:50%; background: var(--accent);
+  position:relative;
+}
+.pulse-mark::before, .pulse-mark::after{
+  content:''; position:absolute; inset:0; border-radius:50%;
+  border:1.5px solid var(--accent); opacity:0;
+  animation: pulse-ripple 2.6s ease-out infinite;
+}
+.pulse-mark::after{ animation-delay: 1.3s; }
+@keyframes pulse-ripple{
+  0%{ transform: scale(1); opacity:.55; }
+  100%{ transform: scale(4.2); opacity:0; }
+}
+@media (prefers-reduced-motion: reduce){
+  .pulse-mark::before, .pulse-mark::after, .pulse-ring::before{ animation:none; }
+}
+
+/* ---------- cabeçalho de painel (chat / sala) ---------- */
+.panel-header{
+  display:flex; align-items:center; gap:12px;
+  padding: 14px 20px; border-bottom: 1px solid var(--border);
+  flex-shrink:0;
+}
+.panel-header-info{ min-width:0; flex:1; }
+.panel-header-name{ font-weight:600; font-size:14.5px; }
+.panel-header-status{ display:flex; align-items:center; gap:6px; font-size:12px; color: var(--text-muted); margin-top:2px; }
+.panel-header-actions{ display:flex; gap:8px; }
+
+/* ---------- chat ---------- */
+.panel-chat, .panel-room{ display:flex; flex-direction:column; flex:1; min-height:0; }
+.messages{ flex:1; overflow-y:auto; padding: 20px; display:flex; flex-direction:column; gap:10px; }
+.msg{
+  max-width:66%; padding:10px 14px; border-radius: 14px;
+  font-size:14px; line-height:1.45; word-wrap:break-word;
+}
+.msg-them{ align-self:flex-start; background: var(--surface); border:1px solid var(--border); border-bottom-left-radius:4px; }
+.msg-me{ align-self:flex-end; background: var(--accent); color: var(--accent-ink); border-bottom-right-radius:4px; font-weight:500; }
+.msg-time{ font-size:10.5px; color: var(--text-faint); margin-top:4px; }
+.msg-me .msg-time{ color: rgba(42,14,22,0.55); }
+.msg-system{ align-self:center; font-size:12px; color: var(--text-faint); background:none; padding:4px; }
+
+.message-form{ display:flex; gap:10px; padding: 16px 20px; border-top:1px solid var(--border); flex-shrink:0; }
+.message-form .field-input{ flex:1; }
+
+/* ---------- sala em grupo ---------- */
+.room-grid{
+  flex:1; padding:20px; display:grid; gap:14px; overflow:auto;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  align-content:start;
+}
+.room-tile{
+  position:relative; background: var(--surface); border:1px solid var(--border);
+  border-radius: var(--radius); aspect-ratio: 4/3; overflow:hidden;
+  display:flex; align-items:center; justify-content:center;
+}
+.room-tile video{ width:100%; height:100%; object-fit:cover; }
+.room-tile .avatar{ width:56px; height:56px; font-size:20px; }
+.room-tile-label{
+  position:absolute; left:10px; bottom:8px; font-size:12px; font-weight:600;
+  background: rgba(23,19,30,0.65); padding:3px 9px; border-radius:20px; backdrop-filter: blur(4px);
+}
+.room-tile-label.muted::before{ content:'🔇 '; }
+.room-tile.is-me .room-tile-label{ background: rgba(255,111,142,0.25); }
+
+/* ==========================================================================
+   OVERLAYS: CHAMADAS
+   ========================================================================== */
+.overlay{
+  position:fixed; inset:0; background: rgba(10,8,14,0.88);
+  backdrop-filter: blur(6px);
+  display:flex; align-items:center; justify-content:center;
+  z-index:100; padding:24px;
+}
+.call-stage{
+  position:relative; width:100%; max-width:720px; aspect-ratio:16/10;
+  background: var(--surface); border-radius: var(--radius-lg); overflow:hidden;
+  border:1px solid var(--border); box-shadow: var(--shadow-soft);
+}
+.call-remote-wrap{ position:absolute; inset:0; }
+#call-remote-video{ width:100%; height:100%; object-fit:cover; background:#0E0C13; }
+.call-remote-fallback{
+  position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px;
+}
+.call-status-text{ font-size:13px; color: var(--text-muted); }
+.call-local-video{
+  position:absolute; bottom:16px; right:16px; width:120px; height:88px;
+  border-radius:12px; object-fit:cover; border:2px solid var(--surface);
+  background:#0E0C13; box-shadow: var(--shadow-soft);
+}
+.call-controls{
+  position:absolute; bottom:16px; left:50%; transform:translateX(-50%);
+  display:flex; gap:12px;
+}
+
+/* ---------- chamada entrante ---------- */
+.incoming-card{
+  background: var(--surface); border:1px solid var(--border); border-radius: var(--radius-lg);
+  padding: 36px 40px; display:flex; flex-direction:column; align-items:center; gap:8px;
+  box-shadow: var(--shadow-soft);
+}
+.incoming-name{ font-family: var(--font-display); font-size:17px; font-weight:600; margin-top:10px; }
+.incoming-sub{ font-size:12.5px; color: var(--text-muted); }
+.incoming-actions{ display:flex; gap:16px; margin-top:20px; }
+
+.pulse-ring{ position:relative; }
+.pulse-ring::before{
+  content:''; position:absolute; inset:-8px; border-radius:50%;
+  border:2px solid var(--warn); opacity:.6;
+  animation: pulse-ripple 1.6s ease-out infinite;
+}
+
+/* ==========================================================================
+   TOASTS
+   ========================================================================== */
+.toast-container{
+  position:fixed; top:18px; left:50%; transform:translateX(-50%);
+  display:flex; flex-direction:column; gap:8px; z-index:200; align-items:center;
+}
+.toast{
+  background: var(--surface-2); border:1px solid var(--border); color: var(--text);
+  padding:10px 16px; border-radius: 10px; font-size:13px;
+  box-shadow: var(--shadow-soft);
+  animation: toast-in .18s ease;
+}
+.toast.error{ border-color: rgba(255,92,108,0.5); color:#FFC7CD; }
+.toast.ok{ border-color: rgba(95,217,196,0.5); color:#C7F5EC; }
+@keyframes toast-in{ from{ opacity:0; transform:translateY(-6px); } to{ opacity:1; transform:translateY(0); } }
+
+/* ==========================================================================
+   RESPONSIVO
+   ========================================================================== */
+@media (max-width: 760px){
+  .app-shell{ flex-direction:column; }
+  .sidebar{
+    width:100%; height:auto; max-height:40vh; border-right:none; border-bottom:1px solid var(--border);
+  }
+  .call-local-video{ width:88px; height:64px; }
+  .msg{ max-width:82%; }
+}

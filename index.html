@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Makcord — chame seus amigos</title>
+<meta name="description" content="Makcord: chat e chamadas em grupo entre amigos, direto do navegador." />
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ===================== TELA DE ENTRADA ===================== -->
+<section id="screen-login" class="screen">
+  <div class="login-card">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span class="brand-name">Makcord</span>
+    </div>
+    <p class="login-sub">Escolha um nome. É por ele que seus amigos vão te encontrar.</p>
+
+    <form id="login-form" autocomplete="off">
+      <label for="username-input" class="field-label">Seu nome</label>
+      <input id="username-input" class="field-input" type="text" placeholder="ex: rafa, bia92, joaosilva"
+             maxlength="24" required />
+      <p id="login-hint" class="field-hint"></p>
+      <button type="submit" class="btn btn-primary btn-block">Entrar</button>
+    </form>
+
+    <p class="login-footnote">Nomes são únicos. Se o seu já estiver em uso, tente outra variação.</p>
+  </div>
+</section>
+
+<!-- ===================== APP PRINCIPAL ===================== -->
+<section id="screen-app" class="screen app-shell hidden">
+
+  <!-- ---- barra lateral ---- -->
+  <aside class="sidebar">
+    <div class="me-row">
+      <div class="avatar avatar-me" id="me-avatar">?</div>
+      <div class="me-info">
+        <div class="me-name" id="me-name">—</div>
+        <div class="me-status">
+          <span class="status-dot" id="me-status-dot"></span>
+          <span id="me-status-text">conectando…</span>
+        </div>
+      </div>
+    </div>
+
+    <form id="add-friend-form" class="add-friend">
+      <input id="add-friend-input" class="field-input field-input--sm" type="text"
+             placeholder="Adicionar amigo por nome" maxlength="24" autocomplete="off" />
+      <button type="submit" class="btn btn-ghost btn-icon" title="Adicionar" aria-label="Adicionar amigo">+</button>
+    </form>
+    <p id="add-friend-hint" class="field-hint"></p>
+
+    <div class="sidebar-section-label">Amigos</div>
+    <ul id="friends-list" class="friends-list">
+      <!-- itens injetados via JS -->
+    </ul>
+    <p id="friends-empty" class="empty-note">Você ainda não adicionou ninguém.<br>Peça o nome de um amigo e adicione acima.</p>
+
+    <div class="sidebar-divider"></div>
+
+    <div class="sidebar-section-label">Sala em grupo</div>
+    <button id="btn-create-room" class="btn btn-secondary btn-block">Criar sala</button>
+    <form id="join-room-form" class="add-friend">
+      <input id="join-room-input" class="field-input field-input--sm" type="text"
+             placeholder="Entrar com nome do anfitrião" maxlength="24" autocomplete="off" />
+      <button type="submit" class="btn btn-ghost btn-icon" title="Entrar" aria-label="Entrar na sala">→</button>
+    </form>
+  </aside>
+
+  <!-- ---- painel principal ---- -->
+  <main class="main-panel">
+
+    <!-- estado vazio -->
+    <div id="panel-empty" class="panel-empty">
+      <span class="pulse-mark" aria-hidden="true"></span>
+      <h1>Ninguém selecionado</h1>
+      <p>Escolha um amigo na lista para conversar, ou crie uma sala para chamar o grupo.</p>
+    </div>
+
+    <!-- chat 1:1 -->
+    <div id="panel-chat" class="panel-chat hidden">
+      <header class="panel-header">
+        <div class="avatar" id="chat-avatar">?</div>
+        <div class="panel-header-info">
+          <div class="panel-header-name" id="chat-name">—</div>
+          <div class="panel-header-status">
+            <span class="status-dot" id="chat-status-dot"></span>
+            <span id="chat-status-text">offline</span>
+          </div>
+        </div>
+        <div class="panel-header-actions">
+          <button id="btn-call-audio" class="btn btn-ghost btn-icon" title="Chamada de voz" aria-label="Chamada de voz">☎</button>
+          <button id="btn-call-video" class="btn btn-ghost btn-icon" title="Chamada de vídeo" aria-label="Chamada de vídeo">▣</button>
+        </div>
+      </header>
+
+      <div id="messages" class="messages"></div>
+
+      <form id="message-form" class="message-form">
+        <input id="message-input" class="field-input" type="text" placeholder="Escreva uma mensagem…" autocomplete="off" />
+        <button type="submit" class="btn btn-primary btn-icon" aria-label="Enviar">➤</button>
+      </form>
+    </div>
+
+    <!-- sala em grupo -->
+    <div id="panel-room" class="panel-room hidden">
+      <header class="panel-header">
+        <div class="avatar avatar-room">☰</div>
+        <div class="panel-header-info">
+          <div class="panel-header-name">Sala de <span id="room-host-name">—</span></div>
+          <div class="panel-header-status"><span id="room-member-count">1</span> de 6 pessoas</div>
+        </div>
+        <div class="panel-header-actions">
+          <button id="btn-toggle-mic" class="btn btn-ghost btn-icon" title="Mudo">🎙</button>
+          <button id="btn-toggle-cam" class="btn btn-ghost btn-icon" title="Câmera">🎥</button>
+          <button id="btn-leave-room" class="btn btn-danger btn-icon" title="Sair da sala">✕</button>
+        </div>
+      </header>
+      <div id="room-grid" class="room-grid"></div>
+    </div>
+
+  </main>
+</section>
+
+<!-- ===================== OVERLAY: CHAMADA 1:1 ===================== -->
+<div id="call-overlay" class="overlay hidden">
+  <div class="call-stage">
+    <div class="call-remote-wrap">
+      <video id="call-remote-video" autoplay playsinline></video>
+      <div class="call-remote-fallback" id="call-remote-fallback">
+        <div class="avatar avatar-xl" id="call-remote-avatar">?</div>
+        <div id="call-remote-name">—</div>
+        <div id="call-status-text" class="call-status-text">chamando…</div>
+      </div>
+    </div>
+    <video id="call-local-video" class="call-local-video" autoplay playsinline muted></video>
+    <div class="call-controls">
+      <button id="call-btn-mic" class="btn btn-ghost btn-icon btn-round" title="Mudo">🎙</button>
+      <button id="call-btn-cam" class="btn btn-ghost btn-icon btn-round" title="Câmera">🎥</button>
+      <button id="call-btn-hangup" class="btn btn-danger btn-icon btn-round" title="Encerrar">✕</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== OVERLAY: CHAMADA ENTRANTE ===================== -->
+<div id="incoming-overlay" class="overlay hidden">
+  <div class="incoming-card">
+    <div class="avatar avatar-xl pulse-ring" id="incoming-avatar">?</div>
+    <div class="incoming-name" id="incoming-name">—</div>
+    <div class="incoming-sub">chamada recebida</div>
+    <div class="incoming-actions">
+      <button id="btn-decline" class="btn btn-danger btn-round" aria-label="Recusar">✕</button>
+      <button id="btn-accept" class="btn btn-accent btn-round" aria-label="Aceitar">✓</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== TOASTS ===================== -->
+<div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
